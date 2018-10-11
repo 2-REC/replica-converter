@@ -1,6 +1,6 @@
 # Replica Converter
 
-Level files converter for the "Replica Engine" * (TODO: add link to "replica-engine" repository).
+Level files converter for the "Replica Engine" (TODO: add link to "replica-engine" repository).
 
 "Replica Engine" is the adaptation of the "Replica Island" Android game (TODO: add link to "replica-island" repository & website?) to make it more generic and easier to use as a game engine (with reduced code modifications required and increased data oriented generation).
 
