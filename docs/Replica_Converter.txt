@@ -1,0 +1,647 @@
+Overview
+(=> List of chapters)
+...
+
+Introduction
+In order to learn how its components based game engine was working, and to make it more generic, I decided to modify the Replica Island's source code. This would hopefully make it easier to create new games using the engine by having less code to write or modify, as well as provide new functionalities.
+
+Many changes have been made to the original source code, one of them being the way the levels are defined and handled. In order to use the modified engine, newly created levels need to follow this new model. Identically, levels created for the original version of the engine, have to be modified in order to be used by the new engine.
+
+To avoid having to do the conversion manually, a file converter tool is being developed, to convert levels defined in the original model to the new model.
+
+This document presents the tool as well as the changes between the two levels description models.
+
+The following chapters describe the two models and their differences. An overview of the application is then provided, followed by a description of the methods and data structures it is composed of.
+
+
+Levels Description Model.
+This chapter describes the files required by both the original and the modified models, their structures, and the mapping between the two models files and data structures.
+
+Files.
+This section describes the files defining the levels structure model for both the original and modified engines.
+
+- Original model:
+  - Level Tree File
+Holds the list of all the levels constituting the game, their order and some additional information related to their management.
+
+Specifics:
+    - Name: "level_tree.xml"
+    - 1 per game
+    - XML format (.xml)
+    - Located in "res/xml"
+    - Handled by "LevelTree.java"
+
+
+  - Level Files
+Defines the structure of a level and its content.
+
+Specifics:
+    - Name: Free, as referred in "level_tree.xml"
+    - 1 per level
+    - Binary format (.bin)
+    - Located in "res/raw"
+    - Handled by "LevelSystem.java" & "TiledWorld.java"
+
+
+  - Dialog Files
+Provides the dialogs used by a character in a level.
+
+Specifics:
+    - Name: Free, as referred in "level_tree.xml"
+    - 0, 1 or 2 per level
+    - XML format (.xml)
+    - Located in "res/xml"
+    - Handled by "LevelTree.java"
+
+
+  - Required input resource files
+The files defining the levels refer to additional files that need to exist in the apllication resources directory.
+
+Here is the list of all the files required by the original level model:
+- drawable
+  - backgrounds (image files, 1 per level, can be shared, hardcoded names)
+  - tilesheets (image files, 1 per visual layer, can be shared, hardcoded names)
+- raw
+  - level files (see above)
+- xml
+  - dialog files (see above)
+  - level_tree.xml (see above)
+(?
+- values
+  - strings.xml (1 per game) (subset of Game,  to be merged with rest)
+)
+
+
+- New model:
+  - Level Tree File
+As for the original model, this fioe holds the list of all the levels constituting the game, their order and some additional information related to their management. As described in the following section, some of these information have been modified or moved to the level files.
+
+Specifics:
+    - Name: "level_tree.xml"
+    - 1 per game
+    - XML format (.xml)
+    - Located in "res/xml"
+    - Handled by "LevelTree.java"
+
+
+  - Level Files
+Defines the structure of a level and its content. The main difference with the original model is that these level description files are xml files instead of binary files, and refer to additional binary files for each layer constituting the level.
+
+Specifics:
+    - Name: Free, as referred in "level_tree.xml"
+    - 1 per level
+    - XML format (.xml)
+    - Located in "res/xml"
+    - Handled by "LevelSystem.java"
+
+  - Layer Files
+These files are specific to the new model.
+They contain the definition of a layer constituting a level.
+(?? Here? Or instructure?
+They correspond to an extracted part of the level file from the original model, only containing data related to a single layer.
+)
+This allows a layer to be reused in different levels.
+
+Specifics:
+    - Name: Free, as referred in level files
+    - 1 per layer
+    - Binary format (.bin)
+    - Located in "res/raw"
+    - Handled by "TiledWorld.java"
+
+
+  - Dialog Files
+Provides the dialogs used in a level.
+It can be shared across multiple levels. There can only be one maximum per level, as opposed to the original model that allows two files per level (but with a limit of 10 conversations).
+
+Specifics:
+    - Name: Free, as referred in level files
+    - 0 or 1 per level
+    - XML format (.xml)
+    - Located in "res/xml"
+    - Handled by "LevelSystem.java"
+
+
+  - Required input resource files
+The files defining the levels refer to additional files that need to exist in the apllication resources directory.
+
+Here is the list of all the files required by the modified level model:
+- drawable
+  - backgrounds (image files, 1 per level, can be shared, free name)
+  - tilesheets (image files, 1 per visual layer, can be shared, free name)
+- raw
+  - bin files (see above)
+- xml
+  - dialog files (see above)
+  - level_tree.xml (see above)
+  - level files (see above)
+(?
+- values
+  - strings.xml (1 per game) (subset of Game,  to be merged with rest)
+)
+
+
+
+
+
+Files Structures:
+(List + explain each field)
+(+ type and default value)
+Level Tree:
+- Replica:
+... xml structure and fields
+(+dialogs)
+- Engine:
+  - Group:
+    ...
+  - Level:
+    - title:
+    - number:
+    - resource:
+    - selectable:
+    - restartable:
+    - skippable:
+    - waitmessage:
+    - music:
+    - intro:
+    - outro:
+    - resultscreen:
+
+Level:
+- Replica
+Handled by "LevelSystem.java" (binary):
+- Level
+  - signature (1 byte): "96d"
+  - layer count (1 byte): Integer
+  - background index (1 byte): Integer
+  - for (layer count)
+    - Layer
+
+- Layer
+  - type (1 byte): Integer
+  - tile index (1 byte): Integer
+  - scroll speed (4 bytes): Float
+  - TiledWorld
+
+Handled by "TiledWorld.java" (binary):
+- TiledWorld:
+  - signature  (1 byte): "42d"
+  - width (4 bytes): Integer
+  - height (4 bytes): Integer
+  - for (x: width)
+    - for (y: height)
+      - tile [x][y] (1 byte): Integer
+
+- Engine:
+Handled by "LevelSystem.java" (xml):
+- Level:
+  - background (1)
+    - resource: Drawable resource (required)
+    - sizeFactorX: Float ("1.0")
+    - sizeFactorY: Float ("1.0")
+    - width: Integer ("512")
+    - height: Integer ("512")
+    - ratio: "width" or "height" ("width")
+
+  - main layer (1)
+    - tileSheet: Drawable resource (required)
+    - tileWidth: Integer (required)
+    - tileHeight: Integer (required)
+    - resource: Binary file (required)
+    - collisionResource: Binary file (same as "resource")
+    - objectsResource: Binary file (required))
+    - hotspotsResource: Binary file (required) (?)
+
+  - layer (N)
+    - tileSheet: Drawable resource  (required)
+    - tileWidth: Integer (required)
+    - tileHeight: Integer (required)
+    - resource: Binary file  (required)
+    - foreground: Boolean ("false")
+    - sizeFactorX: Float ("1.0")
+    - sizeFactorY: Float ("1.0")
+    - movingSpeedX: Float ("0.0")
+    - movingSpeedY: Float ("0.0")
+
+
+Handled by "TiledWorld.java" (binary):
+- TiledWorld (identical too "Replica"):
+  - signature  (1 byte): 42d
+  - width (4 bytes): Integer
+  - height (4 bytes): Integer
+  - for (x: width)
+    - for (y: height)
+      - tile [x][y] (1 byte): Integer
+
+? Handled by "DialogUtils...???" (xml):
+- Dialogs
+... (not in "level_tree.xml")
+
+
+Dialogs:
+- Replica
+... xml structure and fields
+- Engine
+... xml structure and fields (same as in "Replica", except added "id" attribute for "conversation")
+  - Dialog
+    - conversations (array)
+
+  - Conversation
+    - id (Integer): required
+    - pages (array)
+      - page
+        - image: Drawable resource
+        - text: String resource
+        - title: String resource
+(For "resource" types, should have 2 fields:
+- "type": Enum with values "drawable", "xml", etc.
+- "value": string, the name of the resource
+)
+
+
+Data Structures - mappings:
+(List + describe structures, and "mappings": what value, where from, etc.)
+
+XML:
+- level_tree
+=> Values from "level_tree.xml".
+  - level:
+    - title: <title>
+    - number: <time>
+    - resource: <resource> (BUT: as "xml" resource instead of "raw" resource)
+    - selectable: <past> (else "0" - default)
+    - restartable: <restartable> (else "true" - default)
+    - skippable: "false" (OK?)
+    - waitmessage: <waitmessage> (else "false" - default)
+    - music: leave to default  ("0") (OK?)
+    - intro: leave to default ("-1") 
+    - outro: leave to default ("-1") 
+    - resultscreen: leave to default ("0") (! - BUT: will still have the screen - if want to remove it, need to comment code inbetween "lev res")
+
+- level:
+  - background (1)
+    - resource: <backgroundIndex> (switch on value)
+    - sizeFactorX: "1.5"
+    - sizeFactorY: not necessary (as others are specified)
+    - width: set to image width (or with same ratio)
+    - height: set to image height (or with same ratio)
+    - ratio: "width" (as we want landscape orientation)
+!!!! CHECK IF OK !!!!
+
+  - main layer (layerMain) (1)
+(!!!! HERE?
+This layer corresponds to the last layer of type "0" ("BACKGROUND") in input file that is not "overlay" (!!!!). This implies that this element has to be created once all the layers have been read/parsed (parse all input before creating elements).
+And move "overlay" layers to the end.
+
+=> To handle this, use a "layer" object for each layer, even for the main layer, and a "main layer" object where only the other layer types are specified (collision, objects, hotspots), and once all the layers have been read, get the main layer infos from the corresponding "layer" object into the "main layer" object and delete that "layer" object.
+
+)
+    - tileSheet: <tileIndex> (switch on value)
+    - tileWidth: "32"
+    - tileHeight: "32"
+    - resource: file created for type 0 (binary file, "raw" resource)
+    - collisionResource: file created for type 1 (binary file, "raw" resource)
+    - objectsResource: file created for type 2 (binary file, "raw" resource)
+    - hotspotsResource: file created for type 3 (binary file, "raw" resource)
+(for binary file names, should use "<level_name>_<layer_type>.bin", eg: "level_1_collision.bin")
+
+  - layer (N)
+    - tileSheet:: <tileIndex> (switch on value)
+    - tileWidth: "32"
+    - tileHeight: "32"
+    - resource: file created for type 0 (binary file, "raw" resource)
+    - foreground: "false" (leave default)
+    - sizeFactorX: <scrollSpeed> (OK?)
+    - sizeFactorY: "1.0" or <scrollSpeed> (can leave default) (OK?)
+    - movingSpeedX: leave to default  ("0.0")
+    - movingSpeedY: leave to default  ("0.0")
+
+- dialogs (1)
+  - resource: file created for dialogs (xml file, "xml" resource)
+
+In "Replica", there can be up to 2 dialog files per level. If a level doesn't have dialogs no file is needed.
+A dialog file can hold 5 conversations maximum, as it is limited by the hot spots values defined in "HotSpotSystem.java" (from"NPC_SELECT_DIALOG_1_1" to "NPC_SELECT_DIALOG_1_5" for the first file, and "NPC_SELECT_DIALOG_2_1" to "NPC_SELECT_DIALOG_2_5" for the second one).
+
+A dialog file typically holds the conversations for one character for one level, so in general only 2 characters maximum can use dialogs in a single level.
+This is however not a rule, as rechnically all conversations can be assigned to different characters, and a same file can be used in different levels. All conversations from both files can also be used by the same character if more than 5 are needed.
+
+
+In "Engine", there can only be one dialog file per level. Identically, if a level doesn't have dialogs no file is needed.
+A dialog file can hold as many conversations as needed (it is though limited by the maximum value of a byte minus the value of "NPC_SELECT_DIALOG" defined in "HotSpotSystem.java").
+
+Dialogs can be used by any character, and a dialog file can be used in more than one level.
+
+
+In "Replica", a conversation is linked to a hot spot value depending on its position in the file.
+The first conversation is assigned to the hot spot "NPC_SELECT_DIALOG_1_1", the second one to "NPC_SELECT_DIALOG_1_2", etc. (with maximum 5 conversation in the file).
+If there is a second dialog file, the associations are done the same way, but using the hot spot values from "NPC_SELECT_DIALOG_2_1" to "NPC_SELECT_DIALOG_2_5".
+
+In "Engine", the link between conversations and hot spots is done using the IDs specified in the dialog file (which value is added to "NPC_SELECT_DIALOG").
+Conversations can also be specifically assigned to an object's component in "GameObjectFactoryImpl" by methods taking a game event as parameter (such as "HitReactionComponent.setSpawnGameEventOnTakeHit" for example).
+
+Because of this difference, dialog files need to be converted to be used in "Engine" (additionally to the hot spot values being remapped in the level binary files).
+The conversion simply consists in copying the conversation blocks and merging the original dialog files (if there are 2), and for each conversation to add the corresponding ID.
+
+The mapping between the hot spot values can easily be done using the following formulas.
+
+For the conversation IDs to be used in the dialogs file:
+
+ENGINE.CONVERSATION_ID = REPLICA.<hot_spot_value> - REPLICA.NPC_SELECT_DIALOG_1_1
+
+And for the new hot spots values:
+
+ENGINE.HOT_SPOT_VALUE = ENGINE.CONVERSATION_ID + ENGINE.NPC_SELECT_DIALOG
+
+The detailled mapping is thus:
+REPLICA.NPC_SELECT_DIALOG_1_1 => ENGINE.NPC_SELECT_DIALOG
+REPLICA.NPC_SELECT_DIALOG_1_2 => ENGINE.NPC_SELECT_DIALOG + 1
+REPLICA.NPC_SELECT_DIALOG_1_3 => ENGINE.NPC_SELECT_DIALOG + 2
+REPLICA.NPC_SELECT_DIALOG_1_4 => ENGINE.NPC_SELECT_DIALOG + 3
+REPLICA.NPC_SELECT_DIALOG_1_5 => ENGINE.NPC_SELECT_DIALOG + 4
+
+REPLICA.NPC_SELECT_DIALOG_2_1 => ENGINE.NPC_SELECT_DIALOG + 6
+REPLICA.NPC_SELECT_DIALOG_2_2 => ENGINE.NPC_SELECT_DIALOG + 7
+REPLICA.NPC_SELECT_DIALOG_2_3 => ENGINE.NPC_SELECT_DIALOG + 8
+REPLICA.NPC_SELECT_DIALOG_2_4 => ENGINE.NPC_SELECT_DIALOG + 9
+REPLICA.NPC_SELECT_DIALOG_2_5 => ENGINE.NPC_SELECT_DIALOG + 10
+
+
+... Dialogs
+
+
+Binary:
+- layer
+  ... (+ mappings for objects and hotspots)
+
+
+Application Overview
+- main blocks/requirements
+- java app (multi platform)
+- input files + data
+  => files could be obtained from input directory (app knows where to find what)
+  Per level:
+  - level binary file
+  - level name (string)
+  - switch values for bkg index and tile index
+  - objects mapping values
+  - hotspots mapping values
+- output files
+  - xml, binaries, ...
+  - directories? => could copy all required resources in newly created "res" directory structure, including drawables, strings,  etc)
+- UI possibilities... (first version of app without GUI)
+  - text fields for names
+  - file chooser, directory picker, ...
+  - directory save/create
+  - ...
+- ...
+
+
+?
+Algorithms
+- global (whole level tree)
+  - main algorithm (?)
+  - read+process
+- level
+  - main algo
+  - read+process
+
+
+Methods
+List of methods/functions.
+
+- Main
+  - Inputs:
+    - level_filename (String): Replica level filename
+    - dialogs1_filename (String): Character 1 dialogs filename (can be NULL)
+    - dialogs2_filename (String): Character 2 dialogs filename (can be NULL)
+  - Outputs:
+
+...
+  - Algorithm:
+    - LevelInput level_input = parseInput(level_filename)
+    - Boolean have_dialogs = (dialogs1_filename != NULL || dialogs2_filename != NULL) ? true : false
+    - if "have_dialogs"
+      - dialogs_filename = generateDialogs(level_filename, dialogs1_filename, dialogs2_filename)
+    - else
+      - dialogs_filename = NULL
+    - Level level = generateLevel(level_filename, level_input, dialogs_filename)
+    - generateLevelOutput(...)
+...
+
+- parseInput
+  - Inputs:
+    - level_filename (String): Replica level filename
+  - Outputs:
+    - level_input (LevelInput): Level input data
+  - Process: Extract the level data from the input file and stores it in a working data structure.
+  - Algorithm:
+    - bytestream = open(level_filename)
+    - create "LevelInput" object (level_input)
+    - bytestream.read(1) // "signature" => skip
+    - layer_count = bytestream.read(1) // "layer count"
+    - level_input.background_index = bytestream.read (1) // "background index" (resource will be determined from switch on value)
+    - for (layer_count)
+      - type = bytestream.read(1) // "layer type"
+      - tile_index = bytestream.read(1) // "tilesheet index" (resource will be determined from switch in value)
+      - scroll_speed = bytestream.read(4) // "scroll speed"
+      - switch(type)
+        case "BACKGROUND":
+          - create "LayerInput" object (layer_input)
+          - layer_input.tile_index = tile_index
+          - layer_input.scroll_speed = scroll_speed
+          - layer_input.resource = GetTiledWorld(bytestream)
+          - add "layer_input" to "level_input.layers"
+          - increment "level_input.layer_count"
+        case "COLLISION":
+          - level_input.collision_resource = GetTiledWorld(bytestream)
+        case "OBJECTS":
+          - level_input.objects_resource = GetTiledWorld(bytestream)
+        case "HOTSPOTS":
+          - level_input.hotspots_resource = GetTiledWorld(bytestream)
+
+- GenerateLevel
+(!!!! SHOULD BE DIVIDED IN SMALLER FUNCTIONS !!!!)
+  - Inputs:
+    - level_filename (String): Replica level filename
+    - level_input (LevelInput): Level input data
+    - dialogs_filename (String): Dialogs filename (NULL if no dialogs)
+  - Outputs:
+    - level output data (Level)
+  - Process: Create the data structure holding all the information required to make a level.
+  - Algorithm:
+    - create "background" object
+      - set other required fields
+    - get main layer (last one in "levelInput.layers" that is not overlay: "tileSheet" != "THEME_LIGHTING") & remove the layer from "levelInput.layers"
+    - create binary file for main layer (+ filename)
+      Eg: mainLayerResource = GenerateBinaryLayer(level_name, Bytestream stream, LayerType.BACKGROUND)
+    - create binary file for collision layer (+ filename)
+    - create binary file for objects layer (+ filename)
+    - create binary file for hotspots layer (+ filename)
+    - create "mainLayer" object
+      - set tilesheet resource (name + type drawable)
+      - set resource (name + type binary)
+      - set collision resource (name + type binary)
+      - set objects resource (name + type binary)
+      - set hotspots resource (name + type binary)
+      - set other fields (tile_width & tile_height)
+    - create "layers" object (of length "layerCount" - 1 => the main layer has been removed)
+    - for each "input_layer" in "levelInput.layers"
+     - create "layer" object
+      - create binary file for layer (+ filename)
+      - set resource filename
+      - if ("tileSheet" == "THEME_LIGHTING")
+        - set "foreground" to true
+        - set layer name ("fore" + foreground count)
+      - else
+       - set "foreground" to false
+        - set layer name ("back" + background count)
+      - set other fields
+      - add layer at end of "layers"
+    - if "dialogs_filename" != NULL
+      - create "dialogs" object
+        - set dialogs filename
+
+- GenerateBinaryLayer
+  - Inputs:
+    - level_name (String)
+    - stream (Bytestream)
+    - type (Enum)
+  - Outputs:
+    - binary file name (String)
+  - Process:
+    - Determine the file name according to "type"
+    - Create a new binary file
+    - Copy the byte stream in the file, remapping values if necessary according to "type"
+      (!!!! MAPPING REQUIRED FOR OBJECTS AND HOTSPOTS LAYERS - NEED MAP STRUCTURES !!!!)
+    - Save the file
+
+- GenerateLevelOutput
+(Generate xml file...)
+  - Generate background block
+  - Generate main layer block
+  - Generate layers block
+  - Generate dialogs block
+
+- generateDialogs...
+  - Inputs:
+level_filename, dialogs1_filename, dialogs2_filename)
+...
+    - Boolean have_dialogs = (dialogs1_filename != NULL || dialogs2_filename != NULL) ? true : false
+    - if !"have_dialogs"
+      - dialogs_filename = NULL
+    - create dialogs file
+      - extract dialogs from file(s)
+      - merge dialogs in one
+      - set "conversations" IDs
+      - save xml file
+      - set dialogs filename
+
+- GetTiledWorld
+  - Inputs:
+    - bytestream...
+  - Process:
+(Need to read the first few bytes to get width and height, then copy all in new file, with signature, width and height as well)
+...
+
+- GetMappedObjectValue
+  - Inputs:
+    - Object ID
+  - Outputs:
+(Returns the mapped object id)
+
+- GetMappedHotspotValue
+  - Inputs:
+    - Hotspot ID
+  - Outputs:
+(Returns the mapped hotspot value)
+
+- GetDialogId
+  - Inputs:
+    - Hotspot ID
+  - Outputs:
+(Returns
+ID = REP.HOT_SPOT - REP.NPC_SELECT_DIALOG_1_1
+)
+
+- GetResourceString
+  - Inputs:
+    - type (String)
+    - value (String)
+  - Outputs:
+(Returns
+"@" + type + "/" + value
+)
+
+- read/write xml
+(Can use java methods?)
+
+
+
+
+Data
+List of working data structures and constants.
+
+Data Structures:
+-  LevelInput:
+  - layer_count (Integer) !!!! MIGHT BE USELESS !!!!
+  - background_index (Integer)
+  - collision_resource (Byte array)
+  - objects_resource (Byte array)
+  - hotspots_resource (Byte array)
+  - layers[layer_count] (LayerInput array)
+
+- LayerInput:
+  - tile_index (Integer)
+  - scroll_speed (Float)
+  - resource (Byte aray)
+
+
+Constants:
+- Layer Types
+  - Enum (mapped to integers)
+  - Values:
+    - BACKGROUND -> 0
+    - COLLISION -> 1
+    - OBJECTS -> 2
+    - HOTSPOTS -> 3
+  - Hardcoded
+
+- Background Image
+  - Map (integers to strings) => Strings array
+  - Values:
+    - BACKGROUND_NONE (-1)
+    - BACKGROUND_SUNSET (0) -> "background_sunset"
+    - BACKGROUND_ISLAND (1) -> "background_island"
+    - BACKGROUND_SEWER (2) -> "background_sewage"
+    - BACKGROUND_UNDERGROUND (3) -> "background_underground"
+    - BACKGROUND_FOREST (4) -> "background_grass2"
+    - BACKGROUND_ISLAND2 (5) -> "background_island2"
+    - BACKGROUND_LAB (6) -> "background_lab01"
+  - Hardcoded (could be defined in a configuration file, but it is not necessary as it won't change - unless Replica's source code changes)
+
+- Tilemap
+  - Map (integers to strings) => Strings array
+  - Values:
+    - THEME_NONE (-1)
+    - THEME_GRASS (0) -> "grass"
+    - THEME_ISLAND (1) -> "island"
+    - THEME_SEWER (2) -> "sewage"
+    - THEME_UNDERGROUND (3) -> "cave"
+    - THEME_LAB (4) -> "lab"
+    - THEME_LIGHTING (5) -> "titletileset"
+    - THEME_TUTORIAL (6) -> "tutorial"
+  - Hardcoded (could be defined in a configuration file, but it is not necessary as it won't change - unless Replica's source code changes)
+
+- Objects IDs
+  - Map (integers to integers) => Integers array
+  - Values:
+    - Each value from "Replica" needs to be mapped to a value of "Engine"
+    - Values are defined by enumeration in "GameObjectFactoryImpl.java" and "GameObjectFactoryImpl.java" respectively
+  - Should be obtained from a configuration file  (2 lists of integers)
+
+- HotSpots IDs
+  - Map (integers to integers) => Integers array
+  - Values:
+    - Each value from "Replica" needs to be mapped to a value of "Engine"
+    - Values are defined by constants in "HotSpotSystem.java"
+  - Should be obtained from a configuration file  (2 lists of integers)
